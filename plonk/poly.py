@@ -10,3 +10,9 @@ class Basis(Enum):
 class Polynomial:
     values: list[Scalar]
     basis: Basis
+
+    def __init__(self, values: list[Scalar], basis: Basis):
+        assert all(isinstance(x, Scalar) for x in values)
+        assert isinstance(basis, Basis)
+        self.values = values
+        self.basis = basis

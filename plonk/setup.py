@@ -2,6 +2,8 @@ import py_ecc.bn128 as b
 from dataclasses import dataclass
 from curve import G1Point, G2Point
 from poly import Polynomial, Basis
+from compiler.program import CommonPreprocessedInput
+from verifier import VerificationKey
 
 
 # Recover the trusted setup from a file in the format used in
@@ -165,7 +167,7 @@ class Setup(object):
         print("Extracted G2 side, X^1 point: {}".format(X2))
         return cls(powers_of_tau, X2)
 
-    # def commit(self, value):
+    # def commit(self, values: Polynomial) -> G1Point:
+    #     assert values.basis == Basis.LAGRANGE
 
-
-Setup.from_file("plonk/ptau/powersOfTau28_hez_final_11.ptau")
+    # def verification_key(self, pk: CommonPreprocessedInput) -> VerificationKey:

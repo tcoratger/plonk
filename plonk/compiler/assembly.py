@@ -53,25 +53,45 @@ class AssemblyEqn:
     """
 
     wires: GateWires
-    """An instance of the `GateWires` class that specifies variable names for left, right, and output wires."""
+    """An instance of the `GateWires` class that specifies variable names for left, right, and output wires.
+
+    Let us take an example by trying to express the Pythagorean Theorem : `a^2 + b^2 = c^2`
+
+    We can express that by the following set of equations:
+    - `x1 . x1 = x2`
+    - `x3 . x3 = x4`
+    - `x5 . x5 = x6`
+    - `x2 + x4 = x6`
+
+    Composing these equations together gives `x1^2 + x3^2 = x5^2`, the Pythagorean Theorem equation we are trying to express.
+
+    Each `xi` variable is called a "wire".
+
+    In order to satisfy the constraints we would need to supply six numbers as wire values that make all of the equations correct. For example, `x = (3, 9, 4, 16, 5, 25)` would work as would `x = (5, 25, 12, 144, 13, 169)`
+    """
     coeffs: dict[Optional[str], int]
     """A dictionary that associates optional variable names with integer coefficients. These coefficients are used to express the mathematical relationships between the wires in the equation. The keys in the dictionary can be optional variable names, or they can be None to represent constants, and the corresponding values are integer coefficients."""
 
     def L(self) -> Scalar:
+        """Get the coefficient of the L wire and negate it (0 is the default coefficient) to return its finite field representation"""
         return Scalar(-self.coeffs.get(self.wires.L, 0))
 
     def R(self) -> Scalar:
+        """Get the coefficient of the R wire and negate it (0 is the default coefficient) to return its finite field representation"""
         if self.wires.R != self.wires.L:
             return Scalar(-self.coeffs.get(self.wires.R, 0))
         return Scalar(0)
 
     def C(self) -> Scalar:
+        """Get the coefficient of the "" (empty) wire and negate it (0 is the default coefficient) to return its finite field representation"""
         return Scalar(-self.coeffs.get("", 0))
 
     def O(self) -> Scalar:
+        """Get the coefficient of the output wire (1 is the default coefficient) to return its finite field representation"""
         return Scalar(self.coeffs.get("$output_coeff", 1))
 
     def M(self) -> Scalar:
+        """Get the coefficient of the multiplication (M) wire and negate it (0 is the default coefficient) to return its finite field representation"""
         if None not in self.wires.as_list():
             return Scalar(
                 -self.coeffs.get(get_product_key(self.wires.L, self.wires.R), 0)
