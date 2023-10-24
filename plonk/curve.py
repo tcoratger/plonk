@@ -24,3 +24,33 @@ class Scalar(Field):
     """
 
     field_modulus = b.curve_order
+
+    @classmethod
+    def root_of_unity(cls, group_order: int):
+        """
+        Gets the first root of unity of a given group order
+
+        To get an 𝑛-th root of unity, you generate a random non-zero 𝑥 in the field. Then:
+
+        (𝑥^((𝑞−1)/𝑛))^𝑛 = 𝑥^(𝑞−1) = 1
+
+        Therefore, 𝑥^((𝑞−1)/𝑛) is an 𝑛-th root of unity. Note that you can end up with any of the 𝑛 𝑛-th roots of unity (including 1 itself), each with probability 1/𝑛.
+
+        """
+        return Scalar(5) ** ((cls.field_modulus - 1) // group_order)
+
+    @classmethod
+    def roots_of_unity(cls, group_order: int):
+        """
+        Gets the full list of roots of unity of a given group order.
+
+        In a finite field of size 𝑞, the multiplicative subgroup has order 𝑞−1
+        (i.e., all elements are invertible except 0).
+
+        - If 𝑛 is relatively prime to 𝑞−1, then there is only one 𝑛-th root of unity, i.e. 1 itself.
+        - If 𝑛 divides 𝑞−1, then there are 𝑛 roots of unity.
+        """
+        o = [Scalar(1), cls.root_of_unity(group_order)]
+        while len(o) < group_order:
+            o.append(o[-1] * o[1])
+        return o

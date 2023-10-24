@@ -40,3 +40,16 @@ print(res[1].values)
 print(res[2].values)
 print(res[3].values)
 print(res[4].values)
+
+res1 = Program(["c <== a * b"], 8).common_preprocessed_input()
+
+# print(res1.group_order)
+# print(res1.QL.values)
+# print(res1.QR.values)
+# print(res1.QM.values)
+# print(res1.QO.values)
+# print(res1.QC.values)
+
+# print(res1.S1.values)
+# print(res1.S2.values)
+# print(res1.S3.values)

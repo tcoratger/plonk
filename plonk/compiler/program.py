@@ -116,6 +116,79 @@ class Program:
             S[Column.OUTPUT],
         )
 
+    def make_s_polynomials(self) -> dict[Column, Polynomial]:
+        # For each variable, extract the list of (column, row) positions
+        # where that variable is used
+        variable_uses: dict[Optional[str], Set[Cell]] = {None: set()}
+
+        # Example:
+        # For a list of wire constraints ['a', 'b', 'c'], the resulting 'variable_uses' dictionary would look like this:
+        # {
+        #     None: set(),
+        #     'a': {(0, 1)},
+        #     'b': {(0, 2)},
+        #     'c': {(0, 3)}
+        # }
+        #
+        # In this example, each variable ('a', 'b', 'c') is associated with the (row, column) positions where it is used in the constraints.
+        # The positions are recorded in sets to avoid duplicates. The 'None' key in the dictionary is used to store positions where no variable is used.
+
+        # Iterate through each constraint and identify the positions where each variable is used.
+        for row, constraint in enumerate(self.constraints):
+            for column, value in zip(Column.variants(), constraint.wires.as_list()):
+                if value not in variable_uses:
+                    variable_uses[value] = set()
+                # Add (row, column) position
+                variable_uses[value].add(Cell(column, row))
+
+        # Iterate through rows beyond the constraints and to the group order and mark all cells as unused.
+        # This is necessary to ensure that any cells not utilized by constraints are explicitly marked as unused.
+        for row in range(len(self.constraints), self.group_order):
+            # Iterate through all possible columns (variants) within a row.
+            for column in Column.variants():
+                # Add the cell (column, row) to the set associated with 'None',
+                # indicating that it is not used by any variable.
+                variable_uses[None].add(Cell(column, row))
+
+        # Initialize dictionaries to store field elements in S_values for different columns.
+        # We use three separate dictionaries for LEFT, RIGHT, and OUTPUT columns.
+        S_values = {
+            Column.LEFT: [Scalar(0)] * self.group_order,
+            Column.RIGHT: [Scalar(0)] * self.group_order,
+            Column.OUTPUT: [Scalar(0)] * self.group_order,
+        }
+
+        # Iterate through variables and their associated uses.
+        for _, uses in variable_uses.items():
+            # Sort the list of uses by (row, column) positions, ensuring a consistent order.
+            sorted_uses = sorted(uses)
+
+            # For each variable's uses, rotate the positions by one and store field elements in S_values.
+            # For each list of positions, rotate by one.
+            #
+            # For example, let's consider a variable used in positions as follows:
+            # (LEFT, 4), (LEFT, 7), and (OUTPUT, 2)
+            # After processing, we store the field elements as follows:
+            #
+            # - at S[LEFT][7], the field element represents the position (LEFT, 4)
+            # - at S[OUTPUT][2], the field element represents the position (LEFT, 7)
+            # - at S[LEFT][4], the field element represents the position (OUTPUT, 2)
+            for i, cell in enumerate(sorted_uses):
+                # Determine the next position by taking the next element in the sorted list,
+                # cycling back to the first element if needed.
+                next_i = (i + 1) % len(sorted_uses)
+                next_column = sorted_uses[next_i].column
+                next_row = sorted_uses[next_i].row
+
+                # Store the field element in S_values for the next (column, row) position.
+                S_values[next_column][next_row] = cell.label(self.group_order)
+
+        return {
+            Column.LEFT: Polynomial(S_values[Column.LEFT], Basis.LAGRANGE),
+            Column.RIGHT: Polynomial(S_values[Column.RIGHT], Basis.LAGRANGE),
+            Column.OUTPUT: Polynomial(S_values[Column.OUTPUT], Basis.LAGRANGE),
+        }
+
     def make_gate_polynomials(
         self,
     ) -> tuple[Polynomial, Polynomial, Polynomial, Polynomial, Polynomial]:

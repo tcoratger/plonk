@@ -4,6 +4,57 @@ from enum import Enum
 from dataclasses import dataclass
 
 
+class Column(Enum):
+    LEFT = 1
+    RIGHT = 2
+    OUTPUT = 3
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+    @staticmethod
+    def variants():
+        return [Column.LEFT, Column.RIGHT, Column.OUTPUT]
+
+
+@dataclass
+class Cell:
+    column: Column
+    row: int
+
+    def __key(self):
+        return (self.row, self.column.value)
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.__key() < other.__key()
+        return NotImplemented
+
+    def __repr__(self) -> str:
+        return "(" + str(self.row) + ", " + str(self.column.value) + ")"
+
+    def __str__(self) -> str:
+        return "(" + str(self.row) + ", " + str(self.column.value) + ")"
+
+    def label(self, group_order: int) -> Scalar:
+        """
+        Returns the label, an inner-field element, representing a specified (column, row) position.
+
+        The 'section' parameter should be 1 for left, 2 for right, and 3 for output.
+
+        This function relies on the provided 'group_order' for calculating the label.
+        """
+        assert self.row < group_order  # Ensure that the row is within the valid range.
+
+        # Perform polynomial interpolation
+        return Scalar.roots_of_unity(group_order)[self.row] * self.column.value
+
+
 def get_product_key(key1, key2):
     """
     Get the product key for the coefficients dictionary for the term `key1 * key2`.
