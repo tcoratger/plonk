@@ -103,6 +103,18 @@ class Program:
 
     def common_preprocessed_input(self) -> CommonPreprocessedInput:
         L, R, M, O, C = self.make_gate_polynomials()
+        S = self.make_s_polynomials()
+        return CommonPreprocessedInput(
+            self.group_order,
+            M,
+            L,
+            R,
+            O,
+            C,
+            S[Column.LEFT],
+            S[Column.RIGHT],
+            S[Column.OUTPUT],
+        )
 
     def make_gate_polynomials(
         self,
